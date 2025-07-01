@@ -51,11 +51,13 @@ A real-time streaming financial advisor chatbot powered by Azure OpenAI, featuri
 
 To showcase the conversation memory feature, try this interaction:
 
-**Message 1:** "I have $10,000 to invest. What are some safe options?"
+Message 1:
+💬 User: I want to save for a vacation in 6 months. What’s a safe option?
 
-**Message 2:** "What's the expected return on the bonds you mentioned?"
+Message 2:
+💬 User: Will the CD earn more than the savings account?
 
-*Notice how the AI remembers the previous context about bonds from the first response.*
+Note: The generation of the assistant’s response to the second message was intentionally stopped to demonstrate context retention.
 
 ## 🏗️ Tech Stack
 
@@ -63,10 +65,5 @@ To showcase the conversation memory feature, try this interaction:
 - **Frontend:** Vanilla JavaScript, HTML5, CSS3
 - **Features:** Server-Sent Events for streaming, conversation history management
 
-## 📝 License
-
-MIT License - feel free to use this project for learning and development.
-
----
 
 *Built with ❤️ for better financial decision making*
