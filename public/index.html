@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Azure Financial Assistant</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      overflow: hidden;
+    }
+
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      
+      max-width: 1200px; 
+
+
+      margin: 0 auto;
+      background: #ffffff;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .chat-header {
+      background: linear-gradient(90deg, #0078d4, #005fa3);
+      color: white;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .chat-header h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 600;
+    }
+
+    .chat-header p {
+      margin: 5px 0 0 0;
+      opacity: 0.9;
+      font-size: 14px;
+    }
+
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      background: #f8f9fa;
+      scroll-behavior: smooth;
+    }
+
+    .message-wrapper {
+      display: flex;
+      margin-bottom: 16px;
+      animation: fadeIn 0.3s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+   
+  .message {
+  max-width: 85%;
+  padding: 10px 14px;          /* was 14px 18px */
+  border-radius: 14px;         /* was 18px */
+  font-size: 17px;
+  line-height: 1.3;            /* was 1.4 */
+  word-wrap: break-word;
+  position: relative;
+}
+
+
+    .message.user {
+      background: linear-gradient(135deg, #0078d4, #005fa3);
+      color: white;
+      margin-left: auto;
+      border-bottom-right-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0, 120, 212, 0.3);
+    }
+
+    .message.bot {
+      background: #ffffff;
+      color: #333;
+      border: 1px solid #e1e5e9;
+      border-bottom-left-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .message.bot h1, .message.bot h2, .message.bot h3 {
+      margin: 10px 0 5px;
+    }
+
+    .message.bot ul {
+      margin: 8px 0;
+      padding-left: 20px;
+    }
+
+    .message.bot code {
+      background-color: #f4f4f4;
+      padding: 2px 4px;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+
+    .typing-indicator {
+      display: none;
+      padding: 14px 18px;
+      background: #ffffff;
+      border: 1px solid #e1e5e9;
+      border-radius: 18px;
+      border-bottom-left-radius: 4px;
+      max-width: 70%;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .typing-dots {
+      display: flex;
+      gap: 4px;
+    }
+
+    .typing-dots span {
+      width: 8px;
+      height: 8px;
+      background: #999;
+      border-radius: 50%;
+      animation: typing 1.5s infinite;
+    }
+
+    .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typing {
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+      30% { transform: translateY(-10px); opacity: 1; }
+    }
+
+    .input-container {
+      padding: 20px;
+      background: white;
+      border-top: 1px solid #e1e5e9;
+    }
+
+    .input-wrapper {
+      display: flex;
+      align-items: flex-end;
+      gap: 12px;
+      max-width: 100%;
+    }
+
+    #input {
+      flex: 1;
+      min-height: 44px;
+      max-height: 120px;
+      padding: 12px 16px;
+      border: 2px solid #e1e5e9;
+      border-radius: 22px;
+      font-size: 15px;
+      font-family: inherit;
+      outline: none;
+      resize: none;
+      transition: all 0.2s ease;
+      line-height: 1.4;
+    }
+
+    #input:focus {
+      border-color: #0078d4;
+      box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.1);
+    }
+
+    #input:disabled {
+      background: #f5f5f5;
+      cursor: not-allowed;
+    }
+
+    .button {
+      min-width: 44px;
+      height: 44px;
+      border: none;
+      border-radius: 22px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    #sendButton {
+      background: linear-gradient(135deg, #0078d4, #005fa3);
+      color: white;
+      padding: 0 20px;
+    }
+
+    #sendButton:hover:not(:disabled) {
+      background: linear-gradient(135deg, #005fa3, #004578);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 120, 212, 0.3);
+    }
+
+    #sendButton:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    #stopButton {
+      background: linear-gradient(135deg, #dc3545, #c82333);
+      color: white;
+      padding: 0 20px;
+    }
+
+    #stopButton:hover {
+      background: linear-gradient(135deg, #c82333, #a71e2a);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    #messages::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    #messages::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    #messages::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 3px;
+    }
+
+    #messages::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
+    }
+
+    @media (max-width: 768px) {
+      .chat-container {
+        height: 100vh;
+        max-width: 100%;
+      }
+
+      .message {
+        max-width: 85%;
+      }
+
+      .input-container {
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <div class="chat-header">
+      <h1>💼 Azure Financial Assistant</h1>
+      <p>Your intelligent financial advisor powered by Azure OpenAI</p>
+    </div>
+
+    <div id="messages">
+      <div class="message-wrapper">
+        <div class="message bot">
+          👋 Hello! I'm your financial assistant. I can help you with investment advice, market analysis, budgeting, and any other financial questions you might have. How can I assist you today?
+        </div>
+      </div>
+    </div>
+
+    <div class="input-container">
+      <form id="form">
+        <div class="input-wrapper">
+          <textarea id="input" placeholder="Ask me anything about finance..." rows="1" maxlength="2000"></textarea>
+          <button type="submit" id="sendButton" class="button">
+            <span id="sendText">Send</span> <span id="sendIcon">📤</span>
+          </button>
+          <button type="button" id="stopButton" class="button hidden">
+            <span>Stop</span> <span>⏹️</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('form');
+    const input = document.getElementById('input');
+    const messages = document.getElementById('messages');
+    const sendButton = document.getElementById('sendButton');
+    const stopButton = document.getElementById('stopButton');
+
+    let abortController = null;
+    let conversationHistory = [];
+    let isGenerating = false;
+
+    input.addEventListener('input', function () {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    });
+
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        if (!isGenerating && this.value.trim()) {
+          form.dispatchEvent(new Event('submit'));
+        }
+      }
+    });
+
+    function addMessage(content, role) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'message-wrapper';
+
+      const msg = document.createElement('div');
+      msg.className = `message ${role}`;
+
+      if (role === 'bot' && content === '') {
+        msg.innerHTML = '<div class="typing-indicator"><div class="typing-dots"><span></span><span></span><span></span></div></div>';
+      } else {
+        msg.innerHTML = marked.parse(content);
+      }
+
+      wrapper.appendChild(msg);
+      messages.appendChild(wrapper);
+      scrollToBottom();
+      return msg;
+    }
+
+    function scrollToBottom() {
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    function setUIState(generating) {
+      isGenerating = generating;
+      input.disabled = generating;
+      sendButton.disabled = generating;
+      stopButton.classList.toggle('hidden', !generating);
+      sendButton.classList.toggle('hidden', generating);
+    }
+
+    function showTypingIndicator() {
+      const typingDiv = document.createElement('div');
+      typingDiv.className = 'message-wrapper';
+      typingDiv.id = 'typing-indicator';
+
+      const typingMsg = document.createElement('div');
+      typingMsg.className = 'typing-indicator';
+      typingMsg.style.display = 'block';
+      typingMsg.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+
+      typingDiv.appendChild(typingMsg);
+      messages.appendChild(typingDiv);
+      scrollToBottom();
+
+      return typingDiv;
+    }
+
+    function removeTypingIndicator() {
+      const typingIndicator = document.getElementById('typing-indicator');
+      if (typingIndicator) {
+        typingIndicator.remove();
+      }
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const text = input.value.trim();
+      if (!text || isGenerating) return;
+
+      addMessage(text, 'user');
+      conversationHistory.push({ role: 'user', content: text });
+
+      input.value = '';
+      input.style.height = 'auto';
+      setUIState(true);
+      const typingIndicator = showTypingIndicator();
+
+      abortController = new AbortController();
+      const signal = abortController.signal;
+
+      try {
+        const response = await fetch('/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ conversationHistory }),
+          signal
+        });
+
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+        removeTypingIndicator();
+        const botMsg = addMessage('', 'bot');
+        let fullBotResponse = '';
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+        let buffer = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n\n');
+          buffer = lines.pop() || '';
+
+          for (const line of lines) {
+            if (line.startsWith('data:')) {
+              const dataString = line.substring(5).trim();
+              if (dataString === '[DONE]') break;
+              try {
+                const parsedData = JSON.parse(dataString);
+                if (parsedData.content) {
+                  fullBotResponse += parsedData.content;
+                  botMsg.innerHTML = marked.parse(fullBotResponse);
+                  scrollToBottom();
+                } else if (parsedData.error) {
+                  botMsg.innerHTML = `<i>❌ Error: ${parsedData.error}</i>`;
+                  scrollToBottom();
+                  setUIState(false);
+                  return;
+                }
+              } catch (err) {
+                console.error('Parse error:', err);
+              }
+            }
+          }
+        }
+
+        conversationHistory.push({ role: 'assistant', content: fullBotResponse });
+      } catch (err) {
+        removeTypingIndicator();
+        if (err.name === 'AbortError') {
+          const botMsg = addMessage('_Generation stopped by user._', 'bot');
+          botMsg.style.opacity = '0.7';
+        } else {
+          console.error(err);
+          addMessage('❌ Failed to get response. Please try again.', 'bot');
+        }
+      } finally {
+        setUIState(false);
+        abortController = null;
+      }
+    });
+
+    stopButton.addEventListener('click', () => {
+      if (abortController) {
+        abortController.abort();
+        removeTypingIndicator();
+        setUIState(false);
+      }
+    });
+
+    setUIState(false);
+    window.addEventListener('load', () => input.focus());
+  </script>
+</body>
+</html>
